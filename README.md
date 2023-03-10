@@ -1,3 +1,3 @@
 # mortal
 a free project!
-jsut test
+just test
