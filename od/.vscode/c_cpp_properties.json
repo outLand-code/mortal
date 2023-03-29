@@ -1,0 +1,32 @@
+{
+    "configurations": [
+        {
+            "name": "Win32", // 配置名称
+            "includePath": [ // 包含路径，用于 IntelliSense 查找头文件
+                "${workspaceFolder}/**", // 项目工作空间文件夹
+                "D:/vm/opencv452/include", // OpenCV 包含文件夹
+                "D:/vm/opencv452/include/opencv2" // OpenCV 包含文件夹
+            ],
+            "defines": [ // 预处理器定义
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.19041.0", // Windows SDK 版本
+            "compilerPath": "D:/vm/mingw64/bin/g++.exe", // 编译器路径
+            "cStandard": "c11", // C 语言标准
+            "cppStandard": "c++11", // C++ 语言标准
+            "intelliSenseMode": "gcc-x64", // IntelliSense 模式，这里设置为与编译器相匹配的模式
+            "browse": { // 浏览配置，用于指定要在“文件”和“符号”视图中显示的文件和符号
+                "path": [ // 浏览路径
+                    "${workspaceFolder}/**",
+                    "D:/vm/opencv452/include",
+                    "D:/vm/opencv452/include/opencv2"
+                ],
+                "limitSymbolsToIncludedHeaders": true, // 仅限于包含的头文件中的符号
+                "databaseFilename": "" // 符号数据库文件名，留空以使用默认设置
+            }
+        }
+    ],
+    "version": 4 // 配置版本
+}

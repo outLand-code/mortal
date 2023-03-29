@@ -1,0 +1,3 @@
+D:\vm\cmake-3.25.3-windows-x86_64\bin\cmake.exe -E rm -f CMakeFiles\od.dir/objects.a
+D:\vm\mingw64\bin\ar.exe qc CMakeFiles\od.dir/objects.a @CMakeFiles\od.dir\objects1
+D:\vm\mingw64\bin\g++.exe -g -Wl,--whole-archive CMakeFiles\od.dir/objects.a -Wl,--no-whole-archive -o od.exe -Wl,--out-implib,libod.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\od.dir\linkLibs.rsp

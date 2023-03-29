@@ -1,0 +1,14 @@
+{
+    "cmake.configureSettings": {
+      "CMAKE_TOOLCHAIN_FILE": "D:/vm/mingw64/mingw64.cmake"
+    },
+    "cmake.generator": "MinGW Makefiles",
+    "cmake.configureArgs": [
+      "-DCMAKE_MAKE_PROGRAM=D:/vm/mingw64/bin/mingw32-make.exe"
+    ],
+    "files.associations": {
+      "*.c": "cpp",
+      "*.h": "cpp"
+    }
+  }
+  
