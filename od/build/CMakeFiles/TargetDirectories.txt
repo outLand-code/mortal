@@ -1,3 +1,0 @@
-D:/workspace/kind/mortal/od/build/CMakeFiles/od.dir
-D:/workspace/kind/mortal/od/build/CMakeFiles/edit_cache.dir
-D:/workspace/kind/mortal/od/build/CMakeFiles/rebuild_cache.dir

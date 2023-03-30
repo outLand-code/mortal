@@ -1,7 +1,0 @@
-[
-{
-  "directory": "D:/workspace/kind/mortal/od/build",
-  "command": "D:\\vm\\mingw64\\bin\\g++.exe  @CMakeFiles/od.dir/includes_CXX.rsp -g -std=gnu++11 -o CMakeFiles\\od.dir\\main.cpp.obj -c D:\\workspace\\kind\\mortal\\od\\main.cpp",
-  "file": "D:/workspace/kind/mortal/od/main.cpp"
-}
-]
