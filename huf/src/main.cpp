@@ -8,6 +8,11 @@ int main(int argc, char *argv[]){
 
     // HufDecode de;
     // de.decode("test.txt.dat");
+
+    // Compression:     huf test.txt -encode
+    //Uncompression:    huf test.txt -decode
+    
+
     // 遍历参数并输出
     for (int i = 0; i < argc; ++i) {
         std::cout << "Argument " << i << ": " << argv[i] << std::endl;
