@@ -7,6 +7,26 @@
             "command": "g++",
             "args": [
                 "-g",
+                "-D_DEBUG",
+                "${workspaceFolder}/src/main.cpp",
+                "${workspaceFolder}/src/huf.cpp",
+                "-o",
+                "${workspaceFolder}/huf.exe",
+                "-I",
+                "${workspaceFolder}/include"
+            ],
+            "group": "build",
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": "absolute"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "buildRelease",
+            "command": "g++",
+            "args": [
+                "-g",
                 "${workspaceFolder}/src/main.cpp",
                 "${workspaceFolder}/src/huf.cpp",
                 "-o",

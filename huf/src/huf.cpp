@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 
+
 std::vector<char> content;
 std::map<std::string,int> encodeDic;
 std::vector<int> encodeOutput;
@@ -61,13 +62,26 @@ int readEncodeFile(std::string path){
 }
 
 void enOutPut(std::string path){
-    std::ofstream out ;
-    out.open(path+".dat", std::ios::out | std::ios::trunc );
-    for (size_t i = 0; i < encodeOutput.size(); ++i) {
-        out << encodeOutput[i];
-        if (i != encodeOutput.size() - 1) {
-            out << ",";
+    std::ofstream out(path+".dat",std::ios::binary) ;
+    unsigned char buffer = 0;
+    int bit_position = 0;
+    for (const size_t &elem: encodeOutput) 
+    {
+        std::cout<< "test:"<<elem<<std::endl;
+        for(int i=2048;i>0;i=i>>1){
+            if ((elem&i)==i) {
+                buffer |= (1 << (7 - bit_position));
+            }
+            ++bit_position;
+            if (bit_position == 8) {
+                out.write(reinterpret_cast<char*>(&buffer), 1);
+                bit_position = 0;
+                buffer = 0;
+            }
         }
+    }
+    if (bit_position > 0) {
+        out.write(reinterpret_cast<char*>(&buffer), 1);
     }
     
     out.close();
@@ -119,14 +133,37 @@ int readDecodeFile(std::string path){
         std::cerr << "Error: Could not open the file." << std::endl;
         return 1;
     }
-
-    std::string line;
-    while (std::getline(in, line, ',')) {
-        std::istringstream iss(line);
-        int num;
-        iss >> num;
-        encodeOutput.push_back(num);
+    char buffer[3];
+    int bit_position=0,read_int=0;
+    
+    while (in.read(buffer,3))
+    {
+        int count=in.gcount();
+        for (size_t i = 0; i < count; i++)
+        {
+            char c=buffer[i];
+            for(int i=128;i>0;i=i>>1){
+                if((c&i)==i){
+                    read_int|=1<<(11-bit_position);
+                }
+                ++bit_position;
+                if (bit_position==12)
+                {
+                    std::cout<<"test1:"<<read_int<<std::endl;
+                    encodeOutput.push_back(read_int);
+                    bit_position=0;
+                    read_int=0;
+                }
+                
+            }
+        }
+        
     }
+    if(bit_position>0){
+        encodeOutput.push_back(read_int);
+    }
+    std::cout<<"last bit_position:"<<bit_position<<std::endl;
+
 
     in.close();
     return 0;

@@ -2,6 +2,27 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Release", // 调试配置的名称
+            "type": "cppdbg", // 调试器类型，这里是 GDB
+            "request": "launch", // 请求类型，启动调试
+            "program": "${workspaceFolder}/huf.exe", // 要调试的程序
+            "args": [], // 程序参数
+            "stopAtEntry": false, // 是否在程序入口处暂停
+            "cwd": "${workspaceFolder}", // 当前工作目录
+            "environment": [], // 环境变量
+            "externalConsole": false, // 是否使用外部控制台
+            "MIMode": "gdb", // MI 调试器模式
+            "miDebuggerPath": "D:/vm/mingw64/bin/gdb.exe",
+            "setupCommands": [ // GDB 设置命令
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "buildRelease" // 在启动调试前运行的任务，这里是运行构建任务
+        },
+        {
             "name": "Debug", // 调试配置的名称
             "type": "cppdbg", // 调试器类型，这里是 GDB
             "request": "launch", // 请求类型，启动调试
