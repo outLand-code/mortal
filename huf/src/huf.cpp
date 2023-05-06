@@ -14,6 +14,9 @@ int encodeIndex=0;
 std::vector<std::string> decodeDic;
 std::vector<std::string> decodeOutput;
 
+int flush_index = 4095; 
+
+
 HufEncode::HufEncode() {
     initEncodeDic();
 }
@@ -39,6 +42,7 @@ void HufDecode::initDecodeDic() {
         str += c;
         decodeDic.push_back(str);
     }
+
 }
 
 int readEncodeFile(std::string path){
@@ -49,14 +53,16 @@ int readEncodeFile(std::string path){
         std::cout<<" open file faild from path:"<<path<<std::endl;
         return 1;
     }
-    // 定位文件末尾
-    in.seekg(0, std::ios::end);
-    // 获取文件大小
-    std::streamsize fileSize = in.tellg();
-    // 回到文件开头
-    in.seekg(0, std::ios::beg);
-    content.resize(fileSize);
-    in.read(content.data(),fileSize);
+    
+    content.clear();
+    std::string line;
+    while (std::getline(in, line)) {
+        content.insert(content.end(), line.begin(), line.end());
+        if (in.peek() != EOF) {
+            content.push_back('\n');
+        }
+    }
+
     in.close();
     return 0;
 }
@@ -67,7 +73,7 @@ void enOutPut(std::string path){
     int bit_position = 0;
     for (const size_t &elem: encodeOutput) 
     {
-        std::cout<< "test:"<<elem<<std::endl;
+        // std::cout<< "test:"<<elem<<std::endl;
         for(int i=2048;i>0;i=i>>1){
             if ((elem&i)==i) {
                 buffer |= (1 << (7 - bit_position));
@@ -91,6 +97,7 @@ void HufEncode::encode(std::string path){
     readEncodeFile(path);
     char ch;
     std::string s;
+
     for (char c :content)
     {
         ch=c;
@@ -102,12 +109,19 @@ void HufEncode::encode(std::string path){
             //encode s to output file
             encodeOutput.push_back(encodeDic[s]);
             encodeIndex++;
-            encodeDic[s+ch]=encodeIndex;
+            if(encodeDic.size()>=4094){
+                encodeOutput.push_back(flush_index);
+                initEncodeDic();
+            }else{
+                encodeDic[s+ch]=encodeIndex;
+            }
             s=ch;
         }
+        
     }
-    encodeOutput.push_back(encodeDic[s]);
 
+    encodeOutput.push_back(encodeDic[s]);
+    
     enOutPut(path);
 }
 
@@ -128,20 +142,16 @@ void deOutPut(std::string path){
 }
 
 int readDecodeFile(std::string path){
-    std::ifstream in(path);
+    std::ifstream in(path,std::ios::binary);
      if (!in.is_open()) {
         std::cerr << "Error: Could not open the file." << std::endl;
         return 1;
     }
-    char buffer[3];
+    char byte;
     int bit_position=0,read_int=0;
-    
-    while (in.read(buffer,3))
+    while (in.read(&byte,1))
     {
-        int count=in.gcount();
-        for (size_t i = 0; i < count; i++)
-        {
-            char c=buffer[i];
+            char c=byte;
             for(int i=128;i>0;i=i>>1){
                 if((c&i)==i){
                     read_int|=1<<(11-bit_position);
@@ -149,20 +159,18 @@ int readDecodeFile(std::string path){
                 ++bit_position;
                 if (bit_position==12)
                 {
-                    std::cout<<"test1:"<<read_int<<std::endl;
+                    // std::cout<<"test1:"<<read_int<<std::endl;
                     encodeOutput.push_back(read_int);
                     bit_position=0;
                     read_int=0;
                 }
                 
             }
-        }
         
     }
-    if(bit_position>0){
-        encodeOutput.push_back(read_int);
-    }
-    std::cout<<"last bit_position:"<<bit_position<<std::endl;
+    // if(bit_position>0){
+    //     encodeOutput.push_back(read_int);
+    // }
 
 
     in.close();
@@ -176,13 +184,28 @@ void HufDecode::decode(std::string path){
     int prevcode=encodeOutput[0],currcode;
     decodeOutput.push_back(decodeDic[prevcode]);
     for(int i=1;i<encodeOutput.size();i++){
+        
         currcode=encodeOutput[i];
-        entry=decodeDic[currcode];
+        if (currcode == flush_index) {
+            initDecodeDic();
+            prevcode = encodeOutput[++i];
+            decodeOutput.push_back(decodeDic[prevcode]);
+            continue;
+        }
+        if (currcode >= decodeDic.size()) {
+            entry = decodeDic[prevcode];
+            entry += entry[0];
+        } else {
+            entry = decodeDic[currcode];
+        }
         decodeOutput.push_back(entry);
         ch=entry[0];
         decodeDic.push_back(decodeDic[prevcode]+ch);
+        if(decodeDic.size()>=4094){
+            initDecodeDic();
+        }
         prevcode=currcode;
     }
+    
     deOutPut(path);
 }
-

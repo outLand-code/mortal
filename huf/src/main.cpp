@@ -4,11 +4,11 @@
 int main(int argc, char *argv[]){
 
 #ifdef _DEBUG
-    // HufEncode en;
-    // en.encode("test.txt");
+    HufEncode en;
+    en.encode("t_region.sql");
 
-    HufDecode de;
-    de.decode("test.txt.dat");
+    // HufDecode de;
+    // de.decode("t_region.sql.dat");
 
 #else
 
