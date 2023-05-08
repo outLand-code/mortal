@@ -5,10 +5,10 @@ int main(int argc, char *argv[]){
 
 #ifdef _DEBUG
     HufEncode en;
-    en.encode("t_region.sql");
+    en.encode("test.txt");
 
     // HufDecode de;
-    // de.decode("t_region.sql.dat");
+    // de.decode("test.txt.dat");
 
 #else
 
