@@ -83,15 +83,19 @@ public class RPNParser {
         List<SegmentDto> list=new ArrayList<>();
         Deque<Character> sp=new LinkedList<>();
         Stack<Integer> t=new Stack<>();
-
+        boolean quotation=false;
         for (int i = 0; i < infix.length(); i++) {
             char c =infix.charAt(i);
-            if (c<=' ')
+
+            if (!quotation&&c<=' ')
                 continue;
-            int value = isValue(c);
+            if (c=='"')
+                quotation=!quotation;
+            int value = isValue(c,quotation);
+
             if(!sp.isEmpty()){
                 int last =t.peek();
-                if (( last != value)){
+                if (last != value){
                     String s="";
                     while (!sp.isEmpty()){
                         s+=sp.pop();
@@ -103,6 +107,10 @@ public class RPNParser {
             sp.add(c);
             t.push(value);
         }
+
+        if (quotation)
+            throw new TinyDagException("wrong expression,please check it:"+infix);
+
         if (!sp.isEmpty()){
             String s="";
             int  last =t.peek();
@@ -117,12 +125,14 @@ public class RPNParser {
     public static List<String> segmentToString(List<SegmentDto> seg){
         List<String> list =new ArrayList<>();
         for (SegmentDto dto : seg)
-            list.add(dto.str+":"+dto.p);
+            list.add(dto.str);
         return list;
     }
 
-    static int  isValue(char c){
-        if (c =='(')
+    static int  isValue(char c, boolean quotation){
+        if (quotation || c == '"')
+            return 1;
+        else if (c =='(')
             return 2;
         else if (c==')')
             return 3;
@@ -147,7 +157,7 @@ public class RPNParser {
             }
         }
         if (stack.empty()||stack.size()>1)
-            throw new TinyDagException("may be wrong postfix expression,please check it"+postfix.toString());
+            throw new TinyDagException("may be wrong postfix expression,please check it:"+postfix.toString());
 
         return stack.pop();
     }
@@ -173,7 +183,7 @@ public class RPNParser {
 
 
     interface ISymbolAction{
-        String calculate(String i1, String i2);
+        String calculate(String i1,String i2);
     }
 
     static class SymbolAction{
@@ -201,19 +211,26 @@ public class RPNParser {
     }
 
     public static void main(String[] args) {
-        List<SegmentDto> segment = segment("(a==b))||(c==d)");
-        System.out.println(segmentToString(segment));
-        List<String> postfix = transToPostfix(segment);
-        System.out.println(postfix.toString());
-//        List<String> s3 = transToPostfix("\"测试%￥@#t测试\"==\"\test\"");
-//        System.out.println(s3.toString());
-//      ["test", "test", ==, "test", "", !=, ||]
-//        String r3= decipherPostfix(s3);
-//        System.out.println(r3);
+
+        testQuotation();
 
     }
 
-    void testBoolCalculate(){
+    static void testQuotation(){
+        List<SegmentDto> s = segment("\"tets\"==\"test/() #$#$#$****test\"");
+        System.out.println(segmentToString(s));
+
+    }
+
+    static void testChinese(){
+        List<String> s3 = transToPostfix("(\"test\"==\"test1\")||(\"测试\"==\"测试\")");
+        System.out.println(s3.toString());
+//      ["test", "test", ==, "test", "", !=, ||]
+        String r3= decipherPostfix(s3);
+        System.out.println(r3);
+    }
+
+    static void testBoolCalculate(){
         //test2
 //        List<String> s2 = transToPostfix("(a==b)||(c==d)");
 //        System.out.println(s2.toString());
@@ -231,7 +248,7 @@ public class RPNParser {
     }
 
 
-    void testCalculate(){
+    static void testCalculate(){
         // test1
         List<String> s1 = transToPostfix("9+(3-1)*3+10/2");
         System.out.println(s1.toString());
