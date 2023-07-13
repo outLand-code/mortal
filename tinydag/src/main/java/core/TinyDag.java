@@ -122,24 +122,29 @@ public class TinyDag {
         List<String> postfix=rule.rpnExpression;
         if(!RPNParser.isBool(postfix.get(postfix.size()-1)))
             throw new TinyDagException("this postfix is not bool expression,please check it:"+postfix.toString());
-        List<String> postList =new ArrayList<>();
+        List<Object> postList =new ArrayList<>();
         for (String s : postfix) {
-            if (s.startsWith("$."))
-                s=forGetJson(s.substring(2),json);
+            if (s.startsWith("$.")){
+                Object o=forGetJson(s.substring(2),json);
+                postList.add(o);
+
+            }
             postList.add(s);
         }
-        String s = RPNParser.decipherPostfix(postList);
-        return Boolean.parseBoolean(s);
+        Object s = RPNParser.decipherPostfix(postList);
+        if (!(s instanceof Boolean))
+            throw new TinyDagException("The result of decryption is not a Boolean value");
+        return (Boolean)s;
     }
 
-    static String forGetJson(String s,JSONObject json){
+    static Object forGetJson(String s,JSONObject json){
         String[] split = s.split("\\.");
         int i=0;
-        String rs =null;
+        Object rs =null;
         do {
-            if (rs!=null)
-                json=JSONObject.parseObject(rs);
-            rs=json.getString(split[i]);
+            if ( rs instanceof JSONObject)
+                json=(JSONObject) rs;
+            rs=json.get(split[i]);
             i++;
         }while(i<split.length);
 
@@ -243,15 +248,15 @@ public class TinyDag {
     }
 
     public static void main(String[] args) {
-
+        testGetJsonValue();
     }
 
 
-    void testGetJsonValue(){
+    static void testGetJsonValue(){
         String jsonStr="\n" +
                 "{\n" +
                 "    \"dept\":{\n" +
-                "        \"deptCode\":\"123\",\n" +
+                "        \"deptCode\":123,\n" +
                 "        \"employee\":{\n" +
                 "            \"name\":\"test\"\n" +
                 "        }\n" +
@@ -259,10 +264,10 @@ public class TinyDag {
                 "}";
         JSONObject parse = JSONObject.parse(jsonStr);
 
-        String str= "$.dept.employee.name";
+        String str= "$.dept.deptCode";
         str = str.substring(2);
         System.out.println(str);
-        String s = forGetJson(str, parse);
+        Object s = forGetJson(str, parse);
         System.out.println(s);
     }
 }

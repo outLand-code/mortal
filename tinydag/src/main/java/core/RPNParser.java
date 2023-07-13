@@ -2,24 +2,86 @@ package core;
 
 
 
+import java.math.BigDecimal;
 import java.util.*;
 
 public class RPNParser {
 
     private final static Map<String,SymbolAction> dictionary =new HashMap<String, SymbolAction>(){{
-        put("*",new SymbolAction("*",10,  (i1, i2) -> String.valueOf(Integer.parseInt(i1)*Integer.parseInt(i2))));
-        put("/",new SymbolAction("/", 10, (i1, i2) -> String.valueOf(Integer.parseInt(i1)/Integer.parseInt(i2))));
-        put("%",new SymbolAction("%", 10, (i1, i2) -> String.valueOf(Integer.parseInt(i1)%Integer.parseInt(i2))));
-        put("+",new SymbolAction("+", 8, (i1, i2) -> String.valueOf(Integer.parseInt(i1)+Integer.parseInt(i2))));
-        put("-",new SymbolAction("-", 8, (i1, i2) -> String.valueOf(Integer.parseInt(i1)-Integer.parseInt(i2))));
-        put(">",new SymbolAction(">", 5, (i1, i2) -> String.valueOf(Integer.parseInt(i1)>Integer.parseInt(i2))));
-        put("<",new SymbolAction("<", 5, (i1, i2) -> String.valueOf(Integer.parseInt(i1)<Integer.parseInt(i2))));
-        put("==",new SymbolAction("==", 5, (i1, i2) -> String.valueOf(i1.replaceAll("\"","").equals(i2.replaceAll("\"","")))));
-        put("!=",new SymbolAction("!=", 5, (i1, i2) -> String.valueOf(!i1.replaceAll("\"","").equals(i2.replaceAll("\"","")))));
-        put(">=",new SymbolAction(">=", 5, (i1, i2) -> String.valueOf(Integer.parseInt(i1)>=Integer.parseInt(i2))));
-        put("<=",new SymbolAction("<=", 5, (i1, i2) -> String.valueOf(Integer.parseInt(i1)<=Integer.parseInt(i2))));
-        put("||",new SymbolAction("||", 5, (i1, i2) -> String.valueOf(Boolean.parseBoolean(i1)||Boolean.parseBoolean(i2))));
-        put("&&",new SymbolAction("&&", 5, (i1, i2) -> String.valueOf(Boolean.parseBoolean(i1)&&Boolean.parseBoolean(i2))));
+        put("*",new SymbolAction("*",10,  (i1, i2) -> new BigDecimal(i1.toString()).multiply(new BigDecimal(i2.toString()))));
+        put("/",new SymbolAction("/", 10, (i1, i2) -> new BigDecimal(i1.toString()).divide(new BigDecimal(i2.toString()),2, BigDecimal.ROUND_HALF_UP)));
+        put("%",new SymbolAction("%", 10, (i1, i2) -> new BigDecimal(i1.toString()).remainder(new BigDecimal(i2.toString()))));
+        put("+",new SymbolAction("+", 8, (i1, i2) -> new BigDecimal(i1.toString()).add(new BigDecimal(i2.toString()))));
+        put("-",new SymbolAction("-", 8, (i1, i2) -> new BigDecimal(i1.toString()).subtract(new BigDecimal(i2.toString()))));
+        put(">",new SymbolAction(">", 5, (i1, i2) -> new BigDecimal(i1.toString()).compareTo(new BigDecimal(i2.toString()))>0));
+        put("<",new SymbolAction("<", 5, (i1, i2) -> new BigDecimal(i1.toString()).compareTo(new BigDecimal(i2.toString()))<0));
+        put(">=",new SymbolAction(">=", 5, (i1, i2) -> new BigDecimal(i1.toString()).compareTo(new BigDecimal(i2.toString()))>=0));
+        put("<=",new SymbolAction("<=", 5, (i1, i2) -> new BigDecimal(i1.toString()).compareTo(new BigDecimal(i2.toString()))<=0));
+        put("||",new SymbolAction("||", 5, (i1, i2) -> {
+            if (i1 instanceof Boolean && i2 instanceof Boolean)
+                return (Boolean)i1 || (Boolean)i2;
+            throw new RuntimeException("symbol || ,the Class type not found");
+        }));
+        put("&&",new SymbolAction("&&", 5, (i1, i2) -> {
+            if (i1 instanceof Boolean && i2 instanceof Boolean)
+                return (Boolean)i1 && (Boolean)i2;
+            throw new RuntimeException("symbol && ,the Class type not found");
+        }));
+
+        put("==",new SymbolAction("==", 5, (i1, i2) -> {
+            boolean digit=false;
+            if (i1 instanceof String){
+                try {
+                    i1=transNumber((String) i1);
+                    digit=true;
+                }catch (Exception ignored){
+                }
+            }
+            if (!digit && i1 instanceof String && i2 instanceof String ){
+                String s1 =(String)i1,s2=(String)i2;
+                if (s1.charAt(0)=='"'&&s1.charAt(s1.length()-1)=='"')
+                    s1=s1.substring(1,s1.length()-1);
+                if (s2.charAt(0)=='"'&&s2.charAt(s2.length()-1)=='"')
+                    s2=s2.substring(1,s2.length()-1);
+                return s1.equals(s2);
+            }
+            else if (i1 instanceof Boolean)
+                return i1.equals(i2);
+            else if (i1 instanceof BigDecimal)
+                return i1.equals(new BigDecimal(i2.toString()));
+            else if (i1 instanceof Integer|| i1 instanceof Long || i1 instanceof Float || i1 instanceof Double
+                || i2 instanceof Integer|| i2 instanceof Long || i2 instanceof Float || i2 instanceof Double  )
+                return new BigDecimal(i1.toString()).equals(new BigDecimal(i2.toString()));
+
+            throw new RuntimeException("symbol == ,the Class type not found");
+        }));
+        put("!=",new SymbolAction("!=", 5, (i1, i2) -> {
+            boolean digit=false;
+            if (i1 instanceof String){
+                try {
+                    i1=transNumber((String) i1);
+                    digit=true;
+                }catch (Exception ignored){
+                }
+            }
+            if (!digit && i1 instanceof String && i2 instanceof String ){
+                String s1 =(String)i1,s2=(String)i2;
+                if (s1.charAt(0)=='"'&&s1.charAt(s1.length()-1)=='"')
+                    s1=s1.substring(1,s1.length()-1);
+                if (s2.charAt(0)=='"'&&s2.charAt(s2.length()-1)=='"')
+                    s2=s2.substring(1,s2.length()-1);
+                return !s1.equals(s2);
+            }
+            else if (i1 instanceof Boolean)
+                return !i1.equals(i2);
+            else if (i1 instanceof BigDecimal)
+                return !i1.equals(new BigDecimal(i2.toString()));
+            else if (i1 instanceof Integer|| i1 instanceof Long || i1 instanceof Float || i1 instanceof Double
+                    || i2 instanceof Integer|| i2 instanceof Long || i2 instanceof Float || i2 instanceof Double  )
+                return ! new BigDecimal(i1.toString()).equals(new BigDecimal(i2.toString()));
+
+            throw new RuntimeException("symbol != ,the Class type not found");
+        }));
     }};
     private final static Set<String> boolSet=new HashSet<String>(){{
         add(">");
@@ -142,17 +204,21 @@ public class RPNParser {
 
 
 
-    public static String decipherPostfix(List<String> postfix) {
+    public static Object decipherPostfix(List<Object> postfix) {
 
-        Stack<String> stack = new Stack<>() ;
-        for (String s : postfix) {
-            SymbolAction cal = dictionary.get(s);
+        Stack<Object> stack = new Stack<>() ;
+        for (Object s : postfix) {
+            SymbolAction cal=null;
+            if (s instanceof String){
+                 cal = dictionary.get(s);
+            }
             if (cal!=null)
             {
-                String i2 = stack.pop(),
+                Object i2 = stack.pop(),
                         i1=stack.pop() ;
                 stack.push(cal.toWay.calculate(i1,i2));
-            }else{
+            }
+            else{
                 stack.push(s);
             }
         }
@@ -177,13 +243,27 @@ public class RPNParser {
         }
     }
 
+    static Number transNumber(String s){
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '.' || c == 'e' || c == 'E') {
+                return new BigDecimal(s);
+            }
+        }
+        try{
+            return Integer.parseInt(s);
+        }catch (NumberFormatException e){
+            return Long.parseLong(s);
+        }
+    }
+
     public static boolean isBool(String e){
         return boolSet.contains(e);
     }
 
 
     interface ISymbolAction{
-        String calculate(String i1,String i2);
+        Object calculate(Object i1,Object i2);
     }
 
     static class SymbolAction{
@@ -212,8 +292,8 @@ public class RPNParser {
 
     public static void main(String[] args) {
 
-        testQuotation();
 
+        testCalculate1();
     }
 
     static void testQuotation(){
@@ -226,7 +306,7 @@ public class RPNParser {
         List<String> s3 = transToPostfix("(\"test\"==\"test1\")||(\"测试\"==\"测试\")");
         System.out.println(s3.toString());
 //      ["test", "test", ==, "test", "", !=, ||]
-        String r3= decipherPostfix(s3);
+        Object r3=  decipherPostfix(new ArrayList<>(s3));
         System.out.println(r3);
     }
 
@@ -243,7 +323,7 @@ public class RPNParser {
         List<String> s3 = transToPostfix("(\"test\"==\"test1\")||(\"test\"==\"\")");
         System.out.println(s3.toString());
 //      ["test", "test", ==, "test", "", !=, ||]
-        String r3= decipherPostfix(s3);
+        Object r3= decipherPostfix(new ArrayList<>(s3));
         System.out.println(r3);
     }
 
@@ -253,7 +333,7 @@ public class RPNParser {
         List<String> s1 = transToPostfix("9+(3-1)*3+10/2");
         System.out.println(s1.toString());
         //        [9, 3, 1, -, 3, *, +, 10, 2, /, +]
-        String result1= decipherPostfix(s1);
+        Object result1= decipherPostfix(new ArrayList<>(s1));
         System.out.println(result1);
 
 
@@ -261,16 +341,27 @@ public class RPNParser {
         List<String> s4 = transToPostfix("(1+3)*(4+6*3)");
         System.out.println(s4.toString());
         ////[1, 3, +, 4, 6, 3, *, +, *]
-        String result4= decipherPostfix(s4);
+        Object result4= decipherPostfix(new ArrayList<>(s4));
         System.out.println(result4);
 
         //test5
         List<String> s5 = transToPostfix("(1+3)*(6*3+4)");
         System.out.println(s5.toString());
 //[1, 3, +, 6, 3, *, 4, +, *]
-        String result5= decipherPostfix(s5);
+        Object result5= decipherPostfix(new ArrayList<>(s5));
         System.out.println(result5);
 
+        //test6
+        List<String> s6 = transToPostfix("(1+3)*(3.4*2)");
+        System.out.println(s6.toString());
+        Object result6= decipherPostfix(new ArrayList<>(s6));
+        System.out.println(result6);
+    }
 
+    static void testCalculate1(){
+        List<String> s1 = transToPostfix("3*18!=3*6*1");
+        System.out.println(s1.toString());
+        Object result6= decipherPostfix(new ArrayList<>(s1));
+        System.out.println(result6);
     }
 }
