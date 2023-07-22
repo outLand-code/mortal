@@ -246,15 +246,11 @@ public class RPNParser {
     static Number transNumber(String s){
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
-            if (c == '.' || c == 'e' || c == 'E') {
+            if ((c>='0'&&c<='9')|| c == '.' || c == 'e' || c == 'E') {
                 return new BigDecimal(s);
             }
         }
-        try{
-            return Integer.parseInt(s);
-        }catch (NumberFormatException e){
-            return Long.parseLong(s);
-        }
+        throw new NumberFormatException();
     }
 
     public static boolean isBool(String e){
@@ -292,8 +288,7 @@ public class RPNParser {
 
     public static void main(String[] args) {
 
-
-        testCalculate1();
+        testChinese();
     }
 
     static void testQuotation(){
