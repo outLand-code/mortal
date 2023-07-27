@@ -130,9 +130,10 @@ public class TinyDag {
     }
 
     String pick(JSONObject rs, String code, List<RuleExpression> rules){
+        if (rs==null)
+            rs=new JSONObject();
         Track track = TinyDag.track.get();
-        if (rs !=null)
-            track.write(code,Cont_Out,rs.toString());
+        track.write(code,Cont_Out,rs.toString());
         for (RuleExpression rule : rules) {
             if (boolPostfix(rule,rs)){
                 track.write(code,Cont_Rule,rule.expression);
