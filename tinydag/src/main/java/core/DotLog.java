@@ -17,6 +17,9 @@ public class DotLog {
         this.detail = detail;
     }
 
+    public DotLog() {
+    }
+
     public String getId() {
         return id;
     }

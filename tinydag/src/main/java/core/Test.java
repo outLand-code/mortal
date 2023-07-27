@@ -94,7 +94,7 @@ public class Test {
             JSONObject parse = JSONObject.parse(JSON.toJSONString(track));
             System.out.println(parse.toString());
 
-            Track run = tinyDag.run(parse, null);
+            Track run = tinyDag.run(parse, parse,null);
             System.out.println(JSONObject.toJSONString(run));
         });
         Thread t2= new Thread(() -> {
@@ -103,7 +103,7 @@ public class Test {
             track.setId(2);
             JSONObject parse = JSONObject.parse(JSON.toJSONString(track));
             System.out.println(parse.toString());
-            Track run = tinyDag.run(parse, null);
+            Track run = tinyDag.run(parse, parse,null);
             System.out.println(JSONObject.toJSONString(run));
         });
         t1.start();

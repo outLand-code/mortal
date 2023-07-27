@@ -2,10 +2,16 @@ package core;
 
 
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONB;
+import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.util.JSONObject1O;
+
 import java.math.BigDecimal;
 import java.util.*;
 
 public class RPNParser {
+
 
     private final static Map<String,SymbolAction> dictionary =new HashMap<String, SymbolAction>(){{
         put("*",new SymbolAction("*",10,  (i1, i2) -> new BigDecimal(i1.toString()).multiply(new BigDecimal(i2.toString()))));
@@ -17,12 +23,12 @@ public class RPNParser {
         put("<",new SymbolAction("<", 5, (i1, i2) -> new BigDecimal(i1.toString()).compareTo(new BigDecimal(i2.toString()))<0));
         put(">=",new SymbolAction(">=", 5, (i1, i2) -> new BigDecimal(i1.toString()).compareTo(new BigDecimal(i2.toString()))>=0));
         put("<=",new SymbolAction("<=", 5, (i1, i2) -> new BigDecimal(i1.toString()).compareTo(new BigDecimal(i2.toString()))<=0));
-        put("||",new SymbolAction("||", 5, (i1, i2) -> {
+        put("||",new SymbolAction("||", 4, (i1, i2) -> {
             if (i1 instanceof Boolean && i2 instanceof Boolean)
                 return (Boolean)i1 || (Boolean)i2;
             throw new RuntimeException("symbol || ,the Class type not found");
         }));
-        put("&&",new SymbolAction("&&", 5, (i1, i2) -> {
+        put("&&",new SymbolAction("&&", 4, (i1, i2) -> {
             if (i1 instanceof Boolean && i2 instanceof Boolean)
                 return (Boolean)i1 && (Boolean)i2;
             throw new RuntimeException("symbol && ,the Class type not found");
@@ -46,11 +52,11 @@ public class RPNParser {
                 return s1.equals(s2);
             }
             else if (i1 instanceof Boolean)
-                return i1.equals(i2);
+                return i1.equals(Boolean.parseBoolean(i2.toString()));
             else if (i1 instanceof BigDecimal)
                 return i1.equals(new BigDecimal(i2.toString()));
             else if (i1 instanceof Integer|| i1 instanceof Long || i1 instanceof Float || i1 instanceof Double
-                || i2 instanceof Integer|| i2 instanceof Long || i2 instanceof Float || i2 instanceof Double  )
+                    || i2 instanceof Integer|| i2 instanceof Long || i2 instanceof Float || i2 instanceof Double  )
                 return new BigDecimal(i1.toString()).equals(new BigDecimal(i2.toString()));
 
             throw new RuntimeException("symbol == ,the Class type not found");
@@ -204,13 +210,49 @@ public class RPNParser {
 
 
 
+    public static Object decipherPostfixWithJsonObject(List<String> ruleExpression, JSONObject json){
+        Stack<Object> stack =new Stack<>();
+        // cache is not necessary, that was enough
+//        Map<String ,Object> cache=new HashMap<>();
+        for (String s : ruleExpression) {
+            Object o=s;
+            if (s.startsWith("$.")){
+//                o = cache.get(s);
+//                if (o==null){
+                o=ForGetJson(s.substring(2),json);
+//                    cache.put(s,o);
+//                }
+            }
+            if (o==null)
+                throw new NullPointerException("parameter "+s+" is null,please check it:"+json.toString());
+
+            SymbolAction cal=null;
+            if (o instanceof String){
+                cal = dictionary.get(s);
+            }
+            if (cal!=null)
+            {
+                Object i2 = stack.pop(),
+                        i1=stack.pop() ;
+                stack.push(cal.toWay.calculate(i1,i2));
+            }
+            else{
+                stack.push(o);
+            }
+        }
+        if (stack.empty()||stack.size()>1)
+            throw new TinyDagException("may be wrong postfix expression,please check it:"+ruleExpression.toString());
+        return stack.pop();
+    }
+
+
     public static Object decipherPostfix(List<Object> postfix) {
 
         Stack<Object> stack = new Stack<>() ;
         for (Object s : postfix) {
             SymbolAction cal=null;
             if (s instanceof String){
-                 cal = dictionary.get(s);
+                cal = dictionary.get(s);
             }
             if (cal!=null)
             {
@@ -227,6 +269,24 @@ public class RPNParser {
 
         return stack.pop();
     }
+
+    public static Object ForGetJson(String s, JSONObject json){
+        String[] split = s.split("\\.");
+        int i=0;
+        Object rs =null;
+        do {
+            if (rs !=null && !(rs instanceof JSONObject))
+                rs = JSON.toJSON(rs);
+            if ( rs instanceof JSONObject)
+                json=(JSONObject) rs;
+            rs=json.get(split[i]);
+            i++;
+        }while(i<split.length);
+
+        return rs;
+    }
+
+
 
 
     public static boolean isNumeric(CharSequence cs) {
@@ -288,7 +348,9 @@ public class RPNParser {
 
     public static void main(String[] args) {
 
-        testChinese();
+
+
+        testBoolCalculate();
     }
 
     static void testQuotation(){

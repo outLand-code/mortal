@@ -7,34 +7,45 @@ import java.util.UUID;
 public class Track {
 
     private String id;
+    private String idKey;
     private String message="success";
+    private String errorDetail;
     private boolean success=true;
     private int loop;
     private int acLoop=0;
     private String curDot;
     private Map<String,DotInfo> dotMap;
 
-    public Track( int loop,String id) {
+    public Track( int loop,String id,String idKey) {
         if (id!=null)
             this.id = id;
         else
             this.id = UUID.randomUUID().toString();
         this.loop = loop;
-        this.dotMap=new LinkedHashMap<String, DotInfo>();
+        this.idKey=idKey;
+        this.dotMap=new LinkedHashMap<>();
     }
 
     void write(String dot,String type,String msg){
-        dot+=this.acLoop;
+        dot+="-"+this.acLoop;
         if (!dotMap.containsKey(dot))
             dotMap.put(dot,new DotInfo(dot));
         dotMap.get(dot).getLogs().add(new DotLog(type,msg));
     }
 
     boolean checkLoop(String dot){
-        dot+=this.acLoop;
+        dot+="-"+this.acLoop;
         if (dotMap.containsKey(dot))
             this.acLoop++;
         return this.acLoop>this.loop;
+    }
+
+    public String getIdKey() {
+        return idKey;
+    }
+
+    public void setIdKey(String idKey) {
+        this.idKey = idKey;
     }
 
     public int getAcLoop() {
@@ -93,5 +104,12 @@ public class Track {
         this.success = success;
     }
 
+    public String getErrorDetail() {
+        return errorDetail;
+    }
+
+    public void setErrorDetail(String errorDetail) {
+        this.errorDetail = errorDetail;
+    }
 
 }

@@ -14,6 +14,9 @@ public class DotInfo {
         this.logs = new ArrayList<>();
     }
 
+    public DotInfo() {
+    }
+
     public String getCode() {
         return code;
     }
